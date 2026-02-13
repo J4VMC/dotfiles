@@ -88,7 +88,7 @@
         treemacs-workspace-switch-cleanup nil)
 
   ;; --- Treemacs Modes ---
-
+  
   (treemacs-follow-mode t)     ; Automatically select the current file in the tree.
   (treemacs-filewatch-mode t)   ; Refresh the tree if files are changed externally (e.g., Git pull).
   (treemacs-fringe-indicator-mode 'always) ; Show expansion icons in the left margin.
@@ -119,12 +119,6 @@
   :after (treemacs projectile)
   :ensure t)
 
-;; Workspace Integration: Restrict Treemacs view to the current tab.
-(use-package treemacs-tab-bar
-  :after (treemacs)
-  :ensure t
-  :config (treemacs-set-scope-type 'Tabs))
-
 ;; =============================================================================
 ;; UNIFIED "JUMP" KEYMAP (SUPER-P)
 ;; =============================================================================
@@ -149,8 +143,23 @@
 
 ;; 4. Treemacs Shortcuts (UI Controls)
 (with-eval-after-load 'treemacs
+  (defun jmc-treemacs-smart-toggle ()
+    "Toggle treemacs: close if open, or open and find the current file."
+    (interactive)
+    (if (eq (treemacs-current-visibility) 'visible)
+        (delete-window (treemacs-get-local-window))
+      (let ((file-path (buffer-file-name)))
+        (treemacs-add-and-display-current-project-exclusively)
+        (if file-path
+            ;; RACE CONDITION FIX: Give Treemacs 0.1s to finish rendering
+            ;; before searching for the specific file node.
+            (run-with-idle-timer 0.1 nil
+				 (lambda ()
+				   (when (treemacs-get-local-window)
+				     (treemacs-goto-file-node file-path))))
+          (message "Current buffer is not visiting a file")))))
   (define-key my-jump-map (kbd "0") 'treemacs-select-window)      ; Focus the sidebar.
-  (define-key my-jump-map (kbd "t") 'treemacs-add-and-display-current-project-exclusively))
+  (define-key my-jump-map (kbd "t") 'jmc-treemacs-smart-toggle)) ; Custom open & follow
 
 ;; 5. Terminal Integration
 (with-eval-after-load 'vterm-toggle
