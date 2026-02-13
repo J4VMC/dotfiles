@@ -250,28 +250,28 @@
 ;; Runs `elpaca-update-all` silently in the background once per day.
 ;; State is persisted using a timestamp file to avoid redundant updates.
 
-(defvar my/elpaca-timestamp-file
+(defvar jmc-elpaca--timestamp-file
   (expand-file-name "elpaca-last-update.txt" user-emacs-directory)
   "File path to store the date of the last Elpaca update.")
 
-(defun my/read-last-update-date ()
-  "Read the date string from the timestamp file. Returns nil if file is missing or unreadable."
+(defun jmc-elpaca--read-update-date ()
+  "Read the date string from the timestamp file. Return nil if file is missing or unreadable."
   ;; -> Wraps file access in condition-case to gracefully handle I/O errors.
   (condition-case nil
-      (when (file-exists-p my/elpaca-timestamp-file)
+      (when (file-exists-p jmc-elpaca--timestamp-file)
         (with-temp-buffer
-          (insert-file-contents my/elpaca-timestamp-file)
+          (insert-file-contents jmc-elpaca--timestamp-file)
           (string-trim (buffer-string))))
     (error nil)))
 
-(defun my/save-current-update-date ()
+(defun jmc-elpaca--save-update-date ()
   "Write today's date to the timestamp file."
   (with-temp-buffer
     (insert (format-time-string "%Y-%m-%d"))
     ;; -> Write silently to prevent spamming the echo area.
-    (write-region (point-min) (point-max) my/elpaca-timestamp-file nil 'silent)))
+    (write-region (point-min) (point-max) jmc-elpaca--timestamp-file nil 'silent)))
 
-(defun my/elpaca-auto-update ()
+(defun jmc-elpaca-auto-update ()
   "Run `elpaca-update-all` safely and silently."
   (message "Checking for package updates...")
   (let ((elpaca-log-functions nil))
@@ -282,10 +282,10 @@
       (error
         (message "Automatic daily package update failed — %s" (error-message-string err))))))
 
-(defun my/run-daily-elpaca-update-if-needed ()
+(defun jmc-elpaca-daily-update-h ()
   "Check today's date against the saved file and run update if needed."
   (let ((current-date (format-time-string "%Y-%m-%d"))
-        (last-update-date (my/read-last-update-date)))
+        (last-update-date (jmc-elpaca--read-update-date)))
 
     (if (string= current-date last-update-date)
         ;; If dates match, do nothing (or log a quiet message).
@@ -293,15 +293,15 @@
 
       ;; If dates don't match (or file is missing/nil), proceed with update.
       (message "Running daily package update in the background...")
-      (my/elpaca-auto-update)
+      (jmc-elpaca-auto-update)
       
       ;; Save the new date to the file immediately.
-      (my/save-current-update-date))))
+      (jmc-elpaca--save-update-date))))
 
 ;; Schedule the update check to run 30 seconds after Elpaca finishes initializing.
 ;; -> This prevents the update process from slowing down your initial startup.
 (add-hook 'elpaca-after-init-hook
           (lambda ()
-            (run-with-idle-timer 30 nil #'my/run-daily-elpaca-update-if-needed)))
+            (run-with-idle-timer 30 nil #'jmc-elpaca-daily-update-h)))
 
 ;;; init.el ends here
