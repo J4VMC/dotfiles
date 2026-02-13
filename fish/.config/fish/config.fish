@@ -57,7 +57,7 @@ end
 
 # --- CLI Tool Completion ---
 if type -q symfony
-    symfony completion | source
+    symfony completion fish | source
 end
 
 # =============================================================================
