@@ -92,7 +92,7 @@
 ;; Built-in `electric-pair-mode`: Automatically inserts closing brackets `()`, `[]`, `""`.
 (use-package elec-pair
   :config
-  (defun my/electric-pair-inhibit-predicate (char)
+  (defun jmc-electric-pair-inhibit-p (char)
     "Define when Emacs should *not* auto-insert a closing bracket."
     (or
      ;; 1. Never auto-pair while typing in the minibuffer command line.
@@ -102,7 +102,7 @@
      ;; 3. Fallback to default conservative pairing logic for everything else.
      (electric-pair-conservative-inhibit char)))
 
-  (setq electric-pair-inhibit-predicate #'my/electric-pair-inhibit-predicate)
+  (setq electric-pair-inhibit-predicate #'jmc-electric-pair-inhibit-p)
   (electric-pair-mode t))
 
 ;; Explicitly add curly braces `{}` to the pairing list.
@@ -233,14 +233,14 @@
   (define-key ctrlf-minibuffer-mode-map (kbd "C-r") 'ctrlf-backward-default)
   (setq ctrlf-default-search-style 'literal) ; Search for exact text, not Regex.
 
-  (defun my/auto-cancel-ctrlf ()
+  (defun jmc-ctrlf-auto-cancel-h ()
     "Automatically cancel the search if the user clicks out of the minibuffer."
     (when (and (bound-and-true-p ctrlf--active-p)
                (not (minibufferp))
                (not (eq (current-buffer) ctrlf--minibuffer)))
       (ctrlf-cancel)))
 
-  (add-hook 'post-command-hook #'my/auto-cancel-ctrlf)
+  (add-hook 'post-command-hook #'jmc-ctrlf-auto-cancel-h)
   (ctrlf-mode t))
 
 ;; `dash` & `s`: Essential List and String manipulation libraries for Emacs Lisp.

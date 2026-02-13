@@ -338,12 +338,12 @@
 
 ;; Hide the cursor in the dashboard buffer.
 ;; -> The dashboard is non-interactive, so a visible cursor is unnecessary.
-(defun my-dashboard-hide-cursor ()
+(defun jmc-dashboard-hide-cursor-h ()
   "Hide the cursor in the dashboard buffer."
   (setq-local cursor-type nil)
   (setq-local blink-cursor-mode nil))
 
-(add-hook 'dashboard-mode-hook #'my-dashboard-hide-cursor)
+(add-hook 'dashboard-mode-hook #'jmc-dashboard-hide-cursor-h)
 
 ;; Create a "lockdown" mode to make the dashboard completely static.
 ;; -> Disables all scrolling and movement keys.

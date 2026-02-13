@@ -4,7 +4,7 @@
 ;;
 ;; This file configures the terminal experience inside Emacs.
 ;;
-;; We primarily use `vterm`, which is a "full" terminal emulator based on a 
+;; We primarily use `vterm`, which is a "full" terminal emulator based on a
 ;; compiled C library (libvterm). Unlike built-in options like `shell` or 
 ;; `eshell`, `vterm` is fast enough to run intensive CLI apps like `htop`, 
 ;; `vim`, or complex shell themes without lag.
@@ -160,7 +160,7 @@
   ;; We override vterm-toggle's internal logic to use a more powerful 
   ;; "cascading" search for project roots.
 
-  (defun my/get-project-root ()
+  (defun jmc-project-root ()
     "Find the project root using Project.el, Projectile, or Git."
     (or
      (when (fboundp 'project-root)
@@ -178,7 +178,7 @@
     (let* ((buffer-name (or buffer-name vterm-buffer-name))
            (default-directory
             (if vterm-toggle-project-root
-                (my/get-project-root)
+                (jmc-project-root)
               default-directory)))
       (if vterm-toggle-fullscreen-p
           (vterm buffer-name)
@@ -189,7 +189,7 @@
 
   (defun vterm-toggle--project-root ()
     "Internal helper override for project root."
-    (my/get-project-root)))
+    (jmc-project-root)))
 
 ;; =============================================================================
 ;; GLOBAL CONTROLS

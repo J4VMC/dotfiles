@@ -28,7 +28,7 @@
 
 ;; This mapping tells Emacs which docsets are relevant for which programming language.
 ;; -> When you press `M-s d` in a Python file, it will only search Python, Django, etc.
-(defvar my/docset-mapping
+(defvar jmc-docset-map
   '((php-mode            . ("PHP" "Symfony" "Laravel" "PHPUnit" "Composer" "WordPress"))
     (php-ts-mode         . ("PHP" "Symfony" "Laravel" "PHPUnit" "Composer" "WordPress"))
     
@@ -91,7 +91,7 @@
 ;; These functions handle fetching the raw `.tgz` files from Kapeli's
 ;; (the creator of Dash) official GitHub repository.
 
-(defun my/download-and-install-docset (name)
+(defun jmc-docset-install (name)
   "Manually download, extract, and install a Dash docset by NAME (e.g., 'Python 3')."
   (let* ((underscored-name (replace-regexp-in-string " " "_" name))
          (feed-url (format "https://raw.githubusercontent.com/Kapeli/feeds/master/%s.xml" underscored-name)))
@@ -137,7 +137,7 @@
                   (message "✅ Installed %s" name))))))
       (error (message "❌ Error installing %s: %s" name (error-message-string err))))))
 
-(defun my/get-installed-docsets ()
+(defun jmc-docset--installed-list ()
   "Return a list of docset names currently present in `~/.docsets`."
   (mapcar (lambda (d)
             (replace-regexp-in-string
@@ -145,14 +145,14 @@
              (replace-regexp-in-string "\\.docset$" "" d)))
           (directory-files dash-docs-docsets-path nil "\\.docset$")))
 
-(defun my/get-missing-docsets ()
+(defun jmc-docset--missing-list ()
   "Return a list of docsets mapped in `my/docset-mapping` but not physically installed."
   (let ((all-referenced (delete-dups
                          (apply #'append
                                 (mapcar #'cdr my/docset-mapping)))))
     (seq-difference all-referenced (my/get-installed-docsets))))
 
-(defun my/list-installed-docsets ()
+(defun jmc-docset-list ()
   "Display all currently installed docsets in the echo area."
   (interactive)
   (let ((installed (my/get-installed-docsets)))
@@ -164,12 +164,12 @@
                             "\n"))
       (message "⚠️  No docsets installed. Run M-x my/install-missing-docsets"))))
 
-(defun my/install-missing-docsets ()
+(defun jmc-docset-install-missing ()
   "Install all missing docsets defined in your mapping automatically."
   (interactive)
   (let ((missing (my/get-missing-docsets)))
     (if missing
-        (if (yes-or-no-p (format "Install %d docsets? This may take several minutes. "
+        (if (yes-or-no-p (format "Install %d docsets?"
                                  (length missing)))
             (progn
               (message "📥 Installing %d docsets..." (length missing))
@@ -189,11 +189,11 @@
           (message "Installation cancelled."))
       (message "✅ Nothing to install."))))
 
-(defun my/install-docsets-for-mode ()
+(defun jmc-docset-install-for-mode ()
   "Install only the docsets mapped to the current active major mode."
   (interactive)
-  (let* ((docsets (alist-get major-mode my/docset-mapping))
-         (missing (seq-difference docsets (my/get-installed-docsets))))
+  (let* ((docsets (alist-get major-mode jmc-docset-map))
+         (missing (seq-difference docsets (jmc-docset--installed-list))))
     (cond
      ((null docsets)
       (message "⚠️  No docsets configured for %s" major-mode))
@@ -212,7 +212,7 @@
                 (setq current (1+ current))
                 (message "[%d/%d] Installing %s..." current total d)
                 (condition-case err
-                    (my/download-and-install-docset d)
+                    (jmc-docset-install d)
                   (error (push d failed))))
               (if failed
                   (message "⚠️  Completed with %d failures: %s"
@@ -227,7 +227,7 @@
 ;; `consult-dash` provides the fast, live-filtering interface for the minibuffer.
 (use-package consult-dash
   :ensure (:host codeberg :repo "ravi/consult-dash")
-  :bind (("M-s d" . my/consult-dash-at-point))
+  :bind (("M-s d" . jmc-consult-dash-at-point))
   :config
   ;; Disable live HTML previews while scrolling through results.
   ;; -> EWW previews can be slow and disruptive to the layout while searching rapidly.
@@ -240,7 +240,7 @@
   (setq consult-dash-browse-function #'eww)
 
   ;; --- Wrapper Function for Context-Aware Searching ---
-  (defun my/consult-dash-at-point ()
+  (defun jmc-consult-dash-at-point ()
     "Search docsets intelligently based on the current word and file type."
     (interactive)
     
@@ -250,7 +250,7 @@
     
     ;; 2. Dynamically set the active docsets based on the current file's language.
     ;; -> e.g., only search Python docs if we are in a Python file.
-    (let ((docsets (alist-get major-mode my/docset-mapping)))
+    (let ((docsets (alist-get major-mode jmc-docset-map)))
       (when docsets
         (setq-local consult-dash-docsets docsets)))
     
@@ -277,11 +277,11 @@
 ;; =============================================================================
 
 ;; Custom actions for `embark`.
-(defun my/consult-dash-insert (candidate)
+(defun jmc-consult-dash-insert (candidate)
   "Insert the title of the docset CANDIDATE text at point."
   (insert candidate))
 
-(defun my/consult-dash-copy (candidate)
+(defun jmc-consult-dash-copy (candidate)
   "Copy the title of the docset CANDIDATE to the clipboard."
   (kill-new candidate)
   (message "Copied: %s" candidate))
@@ -291,8 +291,8 @@
   (defvar-keymap embark-dash-map
     :doc "Keymap for Embark actions on Dash docset entries"
     :parent embark-general-map
-    "i" #'my/consult-dash-insert
-    "w" #'my/consult-dash-copy)
+    "i" #'jmc-consult-dash-insert
+    "w" #'jmc-consult-dash-copy)
   (add-to-list 'embark-keymap-alist '(consult-dash . embark-dash-map)))
 
 ;; Add a convenient shortcut to LSP-mode's command map.

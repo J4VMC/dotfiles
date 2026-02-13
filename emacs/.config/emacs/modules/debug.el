@@ -135,15 +135,15 @@
   :hook (python-ts-mode . dap-python-setup)
   :config
   ;; Smart Virtual Environment handling.
-  (defun my/dap-python-get-interpreter ()
-    "Return the active venv Python interpreter, falling back to system python3."
+  (defun jmc-dap-python-get-executable ()
+    "Return the active venv Python path, falling back to system python3."
     (let ((venv (getenv "VIRTUAL_ENV")))
-      (if (and venv (> (length venv) 0))
-	  (concat venv "/bin/python3")
+      (if (and venv (not (string-empty-p venv)))
+	  (expand-file-name "bin/python3" venv)
 	"python3")))
 
   ;; Dynamically set the executable path based on the active environment.
-  (setq dap-python-executable (my/dap-python-get-interpreter)))
+  (setq dap-python-executable (jmc-dap-python-get-executable)))
 
 ;; --- PHP ---
 (use-package dap-php

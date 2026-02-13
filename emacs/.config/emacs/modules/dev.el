@@ -281,12 +281,12 @@
   :ensure t
   :after flycheck)
 
-(defun my-php-mode-setup ()
+(defun jmc-php-setup-h ()
   "Enable Flycheck and PHPStan analysis when entering a PHP buffer."
   (require 'flycheck-phpstan)
-  (flycheck-mode t))
+  (flycheck-mode 1))
 
-(add-hook 'php-ts-mode-hook 'my-php-mode-setup)
+(add-hook 'php-ts-mode-hook 'jmc-php-setup-h)
 
 ;; Scala: The LSP server (Metals) handles all linting internally.
 ;; -> We just ensure Flycheck is turned on so the LSP errors have a UI to display on.

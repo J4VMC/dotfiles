@@ -12,8 +12,8 @@
 ;; * **Keybindings**: Shortcuts like `C-c C-c` to compile or run the file.
 ;;
 ;; ### Tree-sitter (`-ts-mode`)
-;; Modes ending in `-ts-mode` utilize **Tree-sitter**, a modern parsing engine. 
-;; It is faster and provides more accurate highlighting and code-aware 
+;; Modes ending in `-ts-mode` utilize **Tree-sitter**, a modern parsing engine.
+;; It is faster and provides more accurate highlighting and code-aware
 ;; navigation compared to traditional regex-based modes.
 ;;
 ;; ### Standard Feature Hooks
@@ -159,7 +159,7 @@
 
 ;; --- Environment & Project Management ---
 
-(defun my-pyvenv-autoload ()
+(defun jmc-python-venv-autoload-h ()
   "Automatically activate a local .venv if found in the project root."
   (interactive)
   (when-let ((venv (locate-dominating-file default-directory ".venv")))
@@ -169,8 +169,8 @@
   :ensure t
   :config
   (add-hook 'python-mode-hook #'pyvenv-mode)
-  (add-hook 'python-mode-hook #'my-pyvenv-autoload)
-  (add-hook 'projectile-after-switch-project-hook #'my-pyvenv-autoload))
+  (add-hook 'python-mode-hook #'jmc-python-venv-autoload-h)
+  (add-hook 'projectile-after-switch-project-hook #'jmc-python-venv-autoload-h))
 
 ;; Poetry: Track and manage Python dependencies.
 (use-package poetry
@@ -380,10 +380,10 @@
 
   ;; --- Preview Engine ---
 
-  (defvar my/markdown-preview-buffer "*markdown-preview-eww*"
+  (defvar jmc-markdown-preview-buffer "*markdown-preview-eww*"
     "Internal buffer name for HTML rendering.")
 
-  (defun my/markdown-preview-render ()
+  (defun jmc-markdown-preview--render ()
     "Convert current Markdown to HTML and refresh the eww buffer."
     (let* ((markdown-buffer (current-buffer))
            (html-output
@@ -392,7 +392,7 @@
               (call-process-region (point-min) (point-max) "pandoc" t t nil "-f" "markdown" "-t" "html" "-s")
               (buffer-string))))
       (when (and html-output (> (length html-output) 0))
-        (with-current-buffer (get-buffer-create my/markdown-preview-buffer)
+        (with-current-buffer (get-buffer-create jmc-markdown-preview-buffer)
           (eww-mode)
           (let ((inhibit-read-only t))
             (erase-buffer)
@@ -401,42 +401,42 @@
               (erase-buffer)
               (shr-insert-document document)))))))
 
-  (defun my/markdown-preview-split ()
+  (defun jmc-markdown-preview-split ()
     "Launch side-by-side live preview."
     (interactive)
     (delete-other-windows)
     (split-window-right)
-    (my/markdown-preview-render)
+    (jmc-markdown-preview--render)
     (other-window 1)
-    (switch-to-buffer my/markdown-preview-buffer)
+    (switch-to-buffer jmc-markdown-preview-buffer)
     (other-window -1)
-    (my/markdown-live-preview-start))
+    (jmc-markdown-preview-live-start))
 
-  (defvar my/markdown-live-preview-timer nil)
+  (defvar jmc-markdown-preview--timer nil)
 
-  (defun my/markdown-live-preview-update ()
+  (defun jmc-markdown-preview--update ()
     "Refresh if the buffer is modified and preview window is visible."
-    (when (and (buffer-modified-p) (get-buffer-window my/markdown-preview-buffer))
-      (my/markdown-preview-render)))
+    (when (and (buffer-modified-p) (get-buffer-window jmc-markdown-preview-buffer))
+      (jmc-markdown-preview--render)))
 
-  (defun my/markdown-live-preview-start ()
+  (defun jmc-markdown-preview-live-start ()
     "Initialize the idle timer for auto-updates."
     (interactive)
-    (unless my/markdown-live-preview-timer
-      (setq my/markdown-live-preview-timer (run-with-idle-timer 1.0 t #'my/markdown-live-preview-update))))
+    (unless jmc-markdown-preview--timer
+      (setq jmc-markdown-preview--timer (run-with-idle-timer 1.0 t #'jmc-markdown-preview--update))))
 
-  (defun my/markdown-live-preview-stop ()
+  (defun jmc-markdown-preview-live-stop ()
     "Halt the preview engine and cleanup buffers."
     (interactive)
-    (when my/markdown-live-preview-timer
-      (cancel-timer my/markdown-live-preview-timer)
-      (setq my/markdown-live-preview-timer nil))
-    (when-let ((buffer (get-buffer my/markdown-preview-buffer)))
+    (when jmc-markdown-preview--timer
+      (cancel-timer jmc-markdown-preview--timer)
+      (setq jmc-markdown-preview--timer nil))
+    (when-let ((buffer (get-buffer jmc-markdown-preview-buffer)))
       (kill-buffer buffer)))
 
   ;; Shortcuts: C-c p (Start), C-c P (Stop).
-  (define-key markdown-mode-map (kbd "C-c p") #'my/markdown-preview-split)
-  (define-key markdown-mode-map (kbd "C-c P") #'my/markdown-live-preview-stop))
+  (define-key markdown-mode-map (kbd "C-c p") #'jmc-markdown-preview-split)
+  (define-key markdown-mode-map (kbd "C-c P") #'jmc-markdown-preview-live-stop))
 
 ;; =============================================================================
 ;; DEVOPS & ENVIRONMENTS (TERRAFORM, DOTENV)
