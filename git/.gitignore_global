@@ -1,0 +1,7 @@
+.gitconfig.local
+.DS_STORE
+*~
+\#*\#
+.\#*
+auto-save-list
+tramp

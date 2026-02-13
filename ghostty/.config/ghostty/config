@@ -1,0 +1,21 @@
+shell-integration = fish
+shell-integration-features = no-cursor
+command = /usr/local/bin/fish
+
+font-family = "FiraCode Nerd Font"
+font-size = 14
+font-feature = "liga"
+font-feature = "calt"
+font-feature = "zero"
+font-feature = "fracs"
+
+theme = "Gruvbox Dark Hard"
+cursor-style = "underline"
+cursor-style-blink = true
+
+background-opacity = 0.85
+background-blur = true
+
+window-padding-x = 10
+window-padding-y = 10
+window-padding-balance = true

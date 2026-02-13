@@ -1,0 +1,458 @@
+;;; languages.el --- Language-specific configurations -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;;
+;; This file defines "Major Modes" for programming and markup languages.
+;;
+;; ### What is a Major Mode?
+;; A Major Mode is a collection of settings specific to a single language.
+;; It provides:
+;; * **Syntax Highlighting**: Colors for keywords, strings, and variables.
+;; * **Indentation**: Smart spacing based on the language's rules.
+;; * **Keybindings**: Shortcuts like `C-c C-c` to compile or run the file.
+;;
+;; ### Tree-sitter (`-ts-mode`)
+;; Modes ending in `-ts-mode` utilize **Tree-sitter**, a modern parsing engine. 
+;; It is faster and provides more accurate highlighting and code-aware 
+;; navigation compared to traditional regex-based modes.
+;;
+;; ### Standard Feature Hooks
+;; Most languages here use a standard "stack" of features:
+;; 1.  `lsp-deferred`: Starts the **Language Server Protocol** client (code 
+;;     completion, "jump to definition") only when the file is actually visible.
+;; 2.  `apheleia-mode`: Enables **Auto-Formatting**. Your code is automatically 
+;;     tidied (using tools like `prettier` or `black`) every time you save.
+;; 3.  `flycheck-mode`: Enables **Real-time Syntax Checking**. Errors are 
+;;     highlighted with red underlines as you type.
+;;
+;;; Code:
+
+;; =============================================================================
+;; PHP
+;; =============================================================================
+
+(use-package php-mode
+  :ensure t
+  ;; Map all PHP-related extensions to the modern Tree-sitter mode.
+  :mode (("\\.php\\'" . php-ts-mode)
+         ("\\.phtml\\'" . php-ts-mode)
+         ("\\.php[3-7]\\'" . php-ts-mode))
+  :hook ((php-ts-mode . lsp-deferred)
+         (php-ts-mode . apheleia-mode)
+         (php-ts-mode . flycheck-mode)))
+
+;; --- PHP Utilities ---
+
+;; Composer: Access PHP's package manager commands directly via M-x.
+(use-package composer
+  :ensure t
+  :after php-mode
+  :commands (composer-install composer-update composer-require))
+
+;; PHPUnit: Integration for running unit tests within Emacs.
+(use-package phpunit
+  :ensure t
+  :after php-mode)
+
+;; Automatic documentation snippets.
+(add-hook 'php-ts-mode-hook (lambda () (docstr-mode 1)))
+
+;; =============================================================================
+;; JAVASCRIPT & TYPESCRIPT
+;; =============================================================================
+
+(use-package typescript-mode
+  :ensure t
+  ;; Associate modern Tree-sitter modes with JS/TS extensions.
+  :mode (("\\.ts\\'" . typescript-ts-mode)
+         ("\\.tsx\\'" . tsx-ts-mode)
+         ("\\.js\\'" . js-ts-mode)
+         ("\\.jsx\\'" . tsx-ts-mode))
+  :hook ((typescript-ts-mode . lsp-deferred)
+         (typescript-ts-mode . apheleia-mode)
+         (typescript-ts-mode . flycheck-mode)
+         (tsx-ts-mode . lsp-deferred)
+         (tsx-ts-mode . apheleia-mode)
+         (tsx-ts-mode . flycheck-mode)
+         (js-ts-mode . lsp-deferred)
+         (js-ts-mode . apheleia-mode)
+         (js-ts-mode . flycheck-mode))
+  :config
+  ;; Standardize 2-space indentation for the JS ecosystem.
+  (setq typescript-indent-level 2
+        js-indent-level 2))
+
+(add-hook 'typescript-ts-mode-hook (lambda () (docstr-mode 1)))
+(add-hook 'tsx-ts-mode-hook (lambda () (docstr-mode 1)))
+(add-hook 'js-ts-mode-hook (lambda () (docstr-mode 1)))
+
+;; =============================================================================
+;; WEB TECHNOLOGIES (HTML, TWIG)
+;; =============================================================================
+
+;; `web-mode` handles files that mix different languages (e.g., HTML + PHP).
+(use-package web-mode
+  :ensure t
+  :mode (("\\.html?\\'" . web-mode)
+         ("\\.twig\\'" . web-mode)
+         ("\\.jsx\\'" . web-mode)
+         ("\\.tsx\\'" . web-mode))
+  :hook ((web-mode . lsp-deferred)
+         (web-mode . apheleia-mode))
+  :config
+  ;; Enforce 2-space indents for HTML, CSS, and mixed code blocks.
+  (setq web-mode-markup-indent-offset 2
+        web-mode-css-indent-offset 2
+        web-mode-code-indent-offset 2))
+
+(add-hook 'web-mode-hook (lambda () (docstr-mode 1)))
+
+;; =============================================================================
+;; PYTHON
+;; =============================================================================
+
+(use-package python
+  :ensure nil ; Built-in
+  :hook ((python-ts-mode . lsp-deferred)
+         (python-ts-mode . apheleia-mode)
+         ;; PEP 8 Standard: Enforce 4-space indents and no physical tabs.
+         (python-ts-mode . (lambda ()
+                             (setq-local tab-width 4
+                                         python-indent-offset 4
+                                         indent-tabs-mode nil))))
+  :config
+  (setq python-shell-interpreter "python3")
+
+  ;; --- Custom Python Helpers ---
+
+  (defun python-flask-run ()
+    "Search for project root and launch a Flask development server."
+    (interactive)
+    (let* ((default-directory (projectile-project-root))
+           (flask-app (read-string "Flask app (e.g., 'app:app'): " nil nil "app:app")))
+      (setenv "FLASK_APP" flask-app)
+      (setenv "FLASK_ENV" "development")
+      (compile "flask run")))
+
+  (defun python-add-breakpoint ()
+    "Quickly insert a `breakpoint()` call at the current line."
+    (interactive)
+    (end-of-line)
+    (newline-and-indent)
+    (insert "breakpoint()  # FIXME: Remove this"))
+
+  (defun python-remove-all-breakpoints ()
+    "Scan the buffer and delete all lines containing `breakpoint()`."
+    (interactive)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "^[[:space:]]*breakpoint().*$" nil t)
+        (delete-region (line-beginning-position) (1+ (line-end-position))))))
+
+  ;; Keybindings:
+  ;; C-c ! f -> Run Flask
+  ;; C-c b   -> Add Breakpoint
+  ;; C-c B   -> Remove all Breakpoints
+  (define-key python-mode-map (kbd "C-c ! f") #'python-flask-run)
+  (define-key python-mode-map (kbd "C-c b") #'python-add-breakpoint)
+  (define-key python-mode-map (kbd "C-c B") #'python-remove-all-breakpoints))
+
+;; --- Environment & Project Management ---
+
+(defun my-pyvenv-autoload ()
+  "Automatically activate a local .venv if found in the project root."
+  (interactive)
+  (when-let ((venv (locate-dominating-file default-directory ".venv")))
+    (pyvenv-activate (expand-file-name ".venv" venv))))
+
+(use-package pyvenv
+  :ensure t
+  :config
+  (add-hook 'python-mode-hook #'pyvenv-mode)
+  (add-hook 'python-mode-hook #'my-pyvenv-autoload)
+  (add-hook 'projectile-after-switch-project-hook #'my-pyvenv-autoload))
+
+;; Poetry: Track and manage Python dependencies.
+(use-package poetry
+  :ensure t
+  :hook (python-mode . poetry-tracking-mode))
+
+;; Pytest: Standardized testing interface.
+(use-package python-pytest
+  :ensure t
+  :after python
+  :commands (python-pytest-dispatch python-pytest-file python-pytest-function))
+
+;; Django: Enable specialized features if `manage.py` is present.
+(use-package python-django
+  :ensure t
+  :hook ((python-ts-mode . (lambda ()
+                             (when (locate-dominating-file default-directory "manage.py")
+                               (python-django-mode 1))))))
+
+(add-hook 'python-ts-mode-hook (lambda () (docstr-mode 1)))
+
+;; =============================================================================
+;; MODERN FRAMEWORKS & LANGUAGES (SVELTE, GO, SWIFT)
+;; =============================================================================
+
+(use-package svelte-mode
+  :ensure t
+  :mode ("\\.svelte\\'" . svelte-mode)
+  :hook ((svelte-mode . lsp-deferred)
+         (svelte-mode . apheleia-mode)
+         (svelte-mode . flycheck-mode)))
+
+(use-package go-mode
+  :ensure t
+  :hook ((go-ts-mode . lsp-deferred)
+         (go-ts-mode . apheleia-mode)
+         (go-ts-mode . flycheck-mode))
+  :config
+  ;; `goimports` handles both formatting and automatic import management.
+  (setq gofmt-command "goimports"))
+
+(add-hook 'go-ts-mode-hook (lambda () (docstr-mode 1)))
+
+(use-package swift-mode
+  :ensure t
+  :hook ((swift-ts-mode . lsp-deferred)
+         (swift-ts-mode . apheleia-mode)
+         (swift-ts-mode . flycheck-mode)))
+
+;; =============================================================================
+;; RUST (VIA RUSTIC)
+;; =============================================================================
+
+(use-package rustic
+  :ensure t
+  :mode ("\\.rs\\'" . rustic-mode)
+  :hook ((rustic-mode . lsp-deferred)
+         (rustic-mode . apheleia-mode)
+         (rustic-mode . flycheck-mode))
+  :bind (:map rustic-mode-map
+              ("C-c C-c l" . flycheck-list-errors)
+              ("C-c C-c a" . lsp-execute-code-action)
+              ("C-c C-c r" . lsp-rename)
+              ("C-c C-d"   . dap-hydra)
+              ("M-."       . lsp-find-definition)
+              ("M-,"       . pop-tag-mark)
+              ("M-?"       . lsp-find-references)
+              ("C-c C-c h" . lsp-documentation)
+              ("M-j"       . lsp-ui-imenu)
+              ("C-c C-c s" . lsp-rust-analyzer-status)
+              ("C-c C-c e" . lsp-rust-analyzer-expand-macro)
+              ("C-c C-c j" . lsp-rust-analyzer-join-lines)
+              ("C-c C-c q" . lsp-workspace-restart)
+              ("C-c C-c Q" . lsp-workspace-shutdown))
+  :config
+  ;; Disable rustic's default formatter in favor of global `apheleia-mode`.
+  (setq rustic-format-on-save nil)
+  (setq rustic-lsp-client 'lsp-mode)
+  (setq rustic-use-tree-sitter t)
+  ;; Use `clippy` for deeper code analysis and linting.
+  (setq rustic-flycheck-checker 'rustic-clippy)
+
+  ;; --- Inlay Hints (Visual Type Annotations) ---
+  (setq rustic-analyzer-proc-macro-enable t)
+  (setq rustic-display-inlay-hints t)
+  (setq rustic-analyzer-display-chaining-hints t)
+  (setq rustic-analyzer-display-closure-return-type-hints t)
+  (setq rustic-analyzer-display-lifetime-elision-hints-enable "skip_trivial"))
+
+;; Cargo: Minor mode for Rust's build system and dependency manager.
+(use-package cargo
+  :ensure t
+  :hook (rustic-mode . cargo-minor-mode))
+
+(add-hook 'rustic-mode-hook (lambda () (docstr-mode 1)))
+
+;; =============================================================================
+;; SCALA
+;; =============================================================================
+
+(use-package scala-ts-mode
+  :ensure t
+  :interpreter ("scala" . scala-ts-mode)
+  :hook ((scala-ts-mode . lsp-deferred)
+         (scala-ts-mode . apheleia-mode)
+         (scala-ts-mode . flycheck-mode)))
+
+;; SBT: Scala Build Tool integration.
+(use-package sbt-mode
+  :commands sbt-start sbt-command
+  :config
+  ;; Fix: Allow space key usage in sbt-command prompts.
+  (substitute-key-definition 'minibuffer-complete-word 'self-insert-command minibuffer-local-completion-map)
+  ;; Fix: Disable supershell to prevent UI corruption in Emacs.
+  (setq sbt:program-options '("-Dsbt.supershell=false")))
+
+(add-hook 'scala-ts-mode-hook (lambda () (docstr-mode 1)))
+
+;; =============================================================================
+;; DATA & DATABASES (SQL, MONGODB, REDIS)
+;; =============================================================================
+
+(use-package sql
+  :ensure nil ; Built-in
+  :hook ((sql-ts-mode . lsp-deferred)
+         (sql-ts-mode . apheleia-mode)
+         (sql-ts-mode . flycheck-mode))
+  :bind (:map sql-mode-map ("C-c C-d" . sql-connect))
+  :config
+  (setq sql-product 'postgres))
+
+(use-package mongo
+  :ensure t
+  :mode ("\\.mongodb\\'" . mongodb-mode)
+  :config
+  ;; Use the modern 'mongosh' shell.
+  (setq mongo-shell-program "mongosh"))
+
+(use-package redis
+  :ensure t
+  :config
+  (require 'bookmark))
+
+;; =============================================================================
+;; STRUCTURED DATA (YAML, JSON, CSV, XML)
+;; =============================================================================
+
+(use-package yaml-mode
+  :ensure t
+  :hook ((yaml-ts-mode . lsp-deferred)
+         (yaml-ts-mode . apheleia-mode)))
+
+(use-package json-mode
+  :ensure t
+  :hook ((json-ts-mode . lsp-deferred)
+         (json-ts-mode . apheleia-mode)))
+
+(use-package csv-mode
+  :ensure t
+  :mode ("\\.csv\\'" . csv-mode)
+  :bind (:map csv-mode-map
+              ("TAB" . csv-next-field)
+              ("<tab>" . csv-next-field)
+              ("<backtab>" . csv-previous-field)))
+
+(use-package xml-mode
+  :ensure nil
+  :hook ((xml-ts-mode . lsp-deferred)
+         (xml-ts-mode . apheleia-mode)))
+
+;; =============================================================================
+;; DOCKER & CONTAINERS
+;; =============================================================================
+
+(use-package dockerfile-mode
+  :ensure t
+  :mode "Dockerfile\\'")
+
+(use-package docker-compose-mode
+  :ensure t
+  :mode "compose.*\\.ya?ml\\'")
+
+;; Management UI for Docker containers and images.
+(use-package docker
+  :ensure t
+  :commands (docker)
+  :bind ("C-c d" . docker))
+
+;; =============================================================================
+;; MARKDOWN (WITH LIVE PREVIEW)
+;; =============================================================================
+;;
+;; 
+;;
+;; This configuration uses `pandoc` to convert Markdown to HTML and renders it
+;; in a local `eww` browser buffer that updates automatically as you type.
+
+(setq exec-path (append '("/usr/local/bin") exec-path))
+
+(use-package markdown-mode
+  :ensure t
+  :hook ((markdown-mode . flycheck-mode)
+         (markdown-mode . apheleia-mode))
+  :config
+  (setq markdown-fontify-code-blocks-natively t)
+  (setq markdown-command "pandoc")
+
+  ;; --- Preview Engine ---
+
+  (defvar my/markdown-preview-buffer "*markdown-preview-eww*"
+    "Internal buffer name for HTML rendering.")
+
+  (defun my/markdown-preview-render ()
+    "Convert current Markdown to HTML and refresh the eww buffer."
+    (let* ((markdown-buffer (current-buffer))
+           (html-output
+            (with-temp-buffer
+              (insert-buffer-substring markdown-buffer)
+              (call-process-region (point-min) (point-max) "pandoc" t t nil "-f" "markdown" "-t" "html" "-s")
+              (buffer-string))))
+      (when (and html-output (> (length html-output) 0))
+        (with-current-buffer (get-buffer-create my/markdown-preview-buffer)
+          (eww-mode)
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (insert html-output)
+            (let ((document (libxml-parse-html-region (point-min) (point-max))))
+              (erase-buffer)
+              (shr-insert-document document)))))))
+
+  (defun my/markdown-preview-split ()
+    "Launch side-by-side live preview."
+    (interactive)
+    (delete-other-windows)
+    (split-window-right)
+    (my/markdown-preview-render)
+    (other-window 1)
+    (switch-to-buffer my/markdown-preview-buffer)
+    (other-window -1)
+    (my/markdown-live-preview-start))
+
+  (defvar my/markdown-live-preview-timer nil)
+
+  (defun my/markdown-live-preview-update ()
+    "Refresh if the buffer is modified and preview window is visible."
+    (when (and (buffer-modified-p) (get-buffer-window my/markdown-preview-buffer))
+      (my/markdown-preview-render)))
+
+  (defun my/markdown-live-preview-start ()
+    "Initialize the idle timer for auto-updates."
+    (interactive)
+    (unless my/markdown-live-preview-timer
+      (setq my/markdown-live-preview-timer (run-with-idle-timer 1.0 t #'my/markdown-live-preview-update))))
+
+  (defun my/markdown-live-preview-stop ()
+    "Halt the preview engine and cleanup buffers."
+    (interactive)
+    (when my/markdown-live-preview-timer
+      (cancel-timer my/markdown-live-preview-timer)
+      (setq my/markdown-live-preview-timer nil))
+    (when-let ((buffer (get-buffer my/markdown-preview-buffer)))
+      (kill-buffer buffer)))
+
+  ;; Shortcuts: C-c p (Start), C-c P (Stop).
+  (define-key markdown-mode-map (kbd "C-c p") #'my/markdown-preview-split)
+  (define-key markdown-mode-map (kbd "C-c P") #'my/markdown-live-preview-stop))
+
+;; =============================================================================
+;; DEVOPS & ENVIRONMENTS (TERRAFORM, DOTENV)
+;; =============================================================================
+
+(use-package terraform-mode
+  :ensure t)
+
+(use-package supreme-dotenv
+  :ensure (:host github :repo "J4VMC/supreme-dotenv"))
+
+;; =============================================================================
+;; FINALIZE
+;; =============================================================================
+
+;; This line tells Emacs that the 'languages' module is successfully loaded.
+(provide 'languages)
+
+;;; languages.el ends here

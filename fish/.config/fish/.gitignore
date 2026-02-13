@@ -1,0 +1,14 @@
+# Ignore the auto-generated universal variable state file
+fish_variables
+
+# Ignore the file containing all my secrets
+private.fish
+
+# Ignore the directory where plugins are installed
+plugins/
+
+# Ignore any temporary or cache files
+*.cache
+
+# Ignore this common stuff
+.DS_Store
