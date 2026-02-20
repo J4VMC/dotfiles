@@ -172,11 +172,6 @@
   (add-hook 'python-mode-hook #'jmc-python-venv-autoload-h)
   (add-hook 'projectile-after-switch-project-hook #'jmc-python-venv-autoload-h))
 
-;; Poetry: Track and manage Python dependencies.
-(use-package poetry
-  :ensure t
-  :hook (python-mode . poetry-tracking-mode))
-
 ;; Pytest: Standardized testing interface.
 (use-package python-pytest
   :ensure t

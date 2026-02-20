@@ -217,14 +217,13 @@
   "Dynamically detect project root and Python version to calibrate Pyright."
   (let ((project-root (projectile-project-root)))
     (when project-root
-      (let* ((py-version-full (shell-command-to-string "pyenv version-name"))
-             (py-version-clean (trim-string py-version-full))
-             (py-version-parts (split-string py-version-clean "\\."))
-             (py-version-major-minor (concat (nth 0 py-version-parts) "." (nth 1 py-version-parts))))
+      ;; Ask the currently active Python for its major.minor version (e.g., "3.12")
+      (let* ((py-version-cmd "python3 -c 'import sys; print(f\"{sys.version_info.major}.{sys.version_info.minor}\")'")
+             (py-version-clean (string-trim (shell-command-to-string py-version-cmd))))
         
         (setq lsp-pyright-workspace-config
               `(:python.analysis.extraPaths [,project-root]
-					    :pythonVersion ,py-version-major-minor))))))
+					    :pythonVersion ,py-version-clean))))))
 
 (add-hook 'python-mode-hook 'set-pyright-paths)
 
