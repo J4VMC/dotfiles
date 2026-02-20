@@ -18,11 +18,11 @@
 ;;
 ;; ### Standard Feature Hooks
 ;; Most languages here use a standard "stack" of features:
-;; 1.  `lsp-deferred`: Starts the **Language Server Protocol** client (code 
+;; 1.  `lsp-deferred`: Starts the **Language Server Protocol** client (code
 ;;     completion, "jump to definition") only when the file is actually visible.
-;; 2.  `apheleia-mode`: Enables **Auto-Formatting**. Your code is automatically 
+;; 2.  `apheleia-mode`: Enables **Auto-Formatting**. Your code is automatically
 ;;     tidied (using tools like `prettier` or `black`) every time you save.
-;; 3.  `flycheck-mode`: Enables **Real-time Syntax Checking**. Errors are 
+;; 3.  `flycheck-mode`: Enables **Real-time Syntax Checking**. Errors are
 ;;     highlighted with red underlines as you type.
 ;;
 ;;; Code:
@@ -447,6 +447,33 @@
 
 (use-package supreme-dotenv
   :ensure (:host github :repo "J4VMC/supreme-dotenv"))
+
+;; =============================================================================
+;; SHELL SUPPORT (FISH)
+;; =============================================================================
+
+;; Provides syntax highlighting and indentation for .fish script files.
+;; -> Useful if you use Fish as your interactive shell (configured below).
+(use-package fish-mode
+  :ensure t
+  :mode "\\.fish\\'"
+  :hook ((fish-mode . apheleia-mode)
+         (fish-mode . flycheck-mode)))
+
+;; Provides modern Tree-sitter syntax highlighting and LSP integration for shell scripts.
+;; -> Requires `bash-language-server`, `shellcheck`, and `shfmt` installed on your OS.
+(use-package sh-script
+  :ensure nil ; Built-in
+  :mode (("\\.sh\\'" . bash-ts-mode)
+         ("\\.bash\\'" . bash-ts-mode)
+         ("bashrc\\'" . bash-ts-mode)
+         ("zshrc\\'" . bash-ts-mode))
+  :hook ((bash-ts-mode . lsp-deferred)
+         (bash-ts-mode . apheleia-mode)
+         (bash-ts-mode . flycheck-mode))
+  :config
+  (setq sh-basic-offset 4
+        sh-indentation 4))
 
 ;; =============================================================================
 ;; FINALIZE

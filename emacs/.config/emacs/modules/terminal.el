@@ -18,15 +18,6 @@
 ;;; Code:
 
 ;; =============================================================================
-;; SHELL SUPPORT (FISH)
-;; =============================================================================
-
-;; Provides syntax highlighting and indentation for .fish script files.
-;; -> Useful if you use Fish as your interactive shell (configured below).
-(use-package fish-mode
-  :ensure t)
-
-;; =============================================================================
 ;; VTERM (THE TERMINAL EMULATOR)
 ;; =============================================================================
 

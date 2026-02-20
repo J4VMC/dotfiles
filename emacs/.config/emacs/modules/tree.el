@@ -53,7 +53,8 @@
                (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
                (php        . ("https://github.com/tree-sitter/tree-sitter-php" "master" "php/src"))
                (sql        . ("https://github.com/m-novikov/tree-sitter-sql"))
-               (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml"))))
+               (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml"))
+	       (bash       . ("https://github.com/tree-sitter/tree-sitter-bash" "master" "src"))))
 
       ;; 1. Register the download source for this language.
       (add-to-list 'treesit-language-source-alist grammar)

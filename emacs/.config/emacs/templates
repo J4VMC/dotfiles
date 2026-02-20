@@ -102,6 +102,21 @@ web-mode twig-mode
 (hack "{# HACK: " p " #}")
 (working "{# WORKING HERE: " p " #}")
 
+git-commit-mode
+
+;; ============================================
+;; CONVENTIONAL COMMITS
+;; ============================================
+
+(feat "feat(" (p "scope") "): " p)
+(fix "fix(" (p "scope") "): " p)
+(docs "docs(" (p "scope") "): " p)
+(style "style(" (p "scope") "): " p)
+(ref "refactor(" (p "scope") "): " p)
+(perf "perf(" (p "scope") "): " p)
+(test "test(" (p "scope") "): " p)
+(chore "chore(" (p "scope") "): " p)
+
 
 ;; Local Variables:
 ;; mode: lisp-data

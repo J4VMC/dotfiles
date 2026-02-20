@@ -241,11 +241,23 @@
     ;; Adds Tempel snippets directly into the Corfu autocomplete pop-up.
     ;; -> You will see snippet suggestions mixed in with standard code completion.
     (add-hook 'completion-at-point-functions #'tempel-expand -1 'local))
+
+  ;; --- Conventional Commits Integration ---
+  (defun jmc-magit-commit-conventional-h ()
+    "Custom setup for conventional commits in Magit buffers."
+    (jmc-tempel-setup-capf-h)
+    ;; Automatically trigger the 'feat' template if starting a fresh commit.
+    ;; -> This ensures the buffer starts with the correct structure immediately.
+    (when (string-empty-p (buffer-string))
+      (tempel-insert 'feat)))
   
   ;; Activate snippet integration in all text and programming environments.
   (add-hook 'conf-mode-hook 'tempel-setup-capf)
   (add-hook 'prog-mode-hook 'tempel-setup-capf)
   (add-hook 'text-mode-hook 'tempel-setup-capf)
+
+  ;; Specialized hook for Git commit messages.
+  (add-hook 'git-commit-mode-hook #'jmc-magit-commit-conventional-h)
   :config
   ;; Automatically expand a snippet if you type its trigger word followed by SPACE.
   (setq global-tempel-abbrev-mode 1))
