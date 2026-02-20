@@ -2,11 +2,11 @@
     defaultBranch = main
     
 [core]
-    excludesfile = ~/.gitignore_global
-    hooksPath = ~/.config/git/hooks
+    excludesfile = /Users/javier/.gitignore_global
+    hooksPath = /Users/javier/.config/git/hooks
 
 [pull]
     rebase = true
 
 [include]
-    path = ~/.gitconfig.local
+    path = /Users/javier/.gitconfig.local

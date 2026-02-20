@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# 1. Auto-detect Homebrew path
+if [ -x "/opt/homebrew/bin/cog" ]; then
+  COG_BIN="/opt/homebrew/bin/cog"
+elif [ -x "/usr/local/bin/cog" ]; then
+  COG_BIN="/usr/local/bin/cog"
+elif command -v cog >/dev/null 2>&1; then
+  COG_BIN=$(command -v cog)
+else
+  echo "❌ FATAL: cog binary not found. Please run: brew install cocogitto" >&2
+  exit 1
+fi
+
+# 2. VERIFY the file (Do not use 'check')
+# This correctly ignores comments and parses the message inside the Emacs buffer
+OUTPUT=$("$COG_BIN" verify --file "$1" 2>&1)
+EXIT_CODE=$?
+
+# 3. If it fails, print the ACTUAL error from Cocogitto to Standard Error
+if [ $EXIT_CODE -ne 0 ]; then
+  echo "❌ COMMIT REJECTED:" >&2
+  echo "$OUTPUT" >&2
+  exit 1
+fi

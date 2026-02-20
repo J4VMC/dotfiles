@@ -1,0 +1,4 @@
+commit-msg:
+  commands:
+    conventional-check:
+      run: cog check --message-file {1}

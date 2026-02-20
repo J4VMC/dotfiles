@@ -237,7 +237,7 @@
          ("M-<up>" . tempel-previous))
   :init
   ;; --- Integrating Tempel with Corfu ---
-  (defun tempel-setup-capf ()
+  (defun jmc-tempel-setup-capf-h ()
     ;; Adds Tempel snippets directly into the Corfu autocomplete pop-up.
     ;; -> You will see snippet suggestions mixed in with standard code completion.
     (add-hook 'completion-at-point-functions #'tempel-expand -1 'local))
@@ -246,18 +246,31 @@
   (defun jmc-magit-commit-conventional-h ()
     "Custom setup for conventional commits in Magit buffers."
     (jmc-tempel-setup-capf-h)
-    ;; Automatically trigger the 'feat' template if starting a fresh commit.
-    ;; -> This ensures the buffer starts with the correct structure immediately.
-    (when (string-empty-p (buffer-string))
-      (tempel-insert 'feat)))
+    
+    ;; 1. Capture the exact Magit buffer we are opening
+    (let ((commit-buf (current-buffer)))
+      
+      ;; 2. Wait until Emacs is completely idle (Magit is finished)
+      (run-with-idle-timer 0.05 nil
+			   (lambda ()
+			     ;; 3. Ensure the buffer wasn't closed immediately
+			     (when (buffer-live-p commit-buf)
+			       (with-current-buffer commit-buf
+				 (goto-char (point-min))
+				 
+				 ;; 4. Check if the top line is empty
+				 (when (looking-at-p "^$")
+				   
+				   ;; 5. Hardcode the initial template to bypass file-parsing issues
+				   (tempel-insert '("feat(" (p "scope") "): " p)))))))))
   
   ;; Activate snippet integration in all text and programming environments.
-  (add-hook 'conf-mode-hook 'tempel-setup-capf)
-  (add-hook 'prog-mode-hook 'tempel-setup-capf)
-  (add-hook 'text-mode-hook 'tempel-setup-capf)
+  (add-hook 'conf-mode-hook 'jmc-tempel-setup-capf-h)
+  (add-hook 'prog-mode-hook 'jmc-tempel-setup-capf-h)
+  (add-hook 'text-mode-hook 'jmc-tempel-setup-capf-h)
 
   ;; Specialized hook for Git commit messages.
-  (add-hook 'git-commit-mode-hook #'jmc-magit-commit-conventional-h)
+  (add-hook 'git-commit-setup-hook #'jmc-magit-commit-conventional-h)
   :config
   ;; Automatically expand a snippet if you type its trigger word followed by SPACE.
   (setq global-tempel-abbrev-mode 1))
