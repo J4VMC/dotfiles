@@ -35,10 +35,15 @@
 (use-package forge
   :after magit
   :ensure t
+  :bind (:map magit-mode-map
+              ("@" . forge-dispatch))
   :config
   ;; Tell Forge where to find your API authentication credentials (like a GitHub Personal Access Token).
   ;; -> `~/.authinfo.gpg` is the standard, secure Emacs location for encrypted passwords.
-  (setq auth-sources '("~/.authinfo.gpg")))
+  (setq auth-sources '("~/.authinfo.gpg"))
+  (add-hook 'magit-status-sections-hook #'magit-insert-forge-pullreqs nil t)
+  (add-hook 'magit-status-sections-hook #'magit-insert-forge-issues nil t)
+  (add-hook 'magit-status-sections-hook #'magit-insert-forge-notifications nil t))
 
 ;; =============================================================================
 ;; API TESTING (RESTCLIENT)
