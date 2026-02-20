@@ -22,18 +22,17 @@
 ;; NATIVE COMPILATION (macOS FIX)
 ;; =============================================================================
 
-;; Fix for "error invoking gcc driver" on macOS when using Homebrew.
+;; Fix for "error invoking gcc driver" on macOS.
 (when (and (eq system-type 'darwin) (functionp 'native-comp-available-p))
-  ;; 1. Dynamically find Homebrew's gcc (e.g., /usr/local/bin/gcc)
   (let ((gcc-path (executable-find "gcc")))
-    (when (and gcc-path (string-match "homebrew" gcc-path))
+    ;; 1. Ensure gcc is found AND it's NOT Apple's default clang wrapper
+    (when (and gcc-path (not (string-equal gcc-path "/usr/bin/gcc")))
       ;; 2. Point libgccjit to this driver using the -B flag
       (setq native-comp-driver-options (list (concat "-B" (file-name-directory gcc-path))))
       ;; 3. Ensure the directory is in exec-path
       (add-to-list 'exec-path (file-name-directory gcc-path)))))
 
 ;; Silence asynchronous native compilation warnings.
-;; -> Prevents annoying popups in the UI during regular usage.
 (setq native-comp-async-report-warnings-errors 'silent)
 
 ;; =============================================================================
