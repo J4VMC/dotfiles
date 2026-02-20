@@ -27,6 +27,15 @@ else if test -x /home/linuxbrew/.linuxbrew/bin/brew # Linux
     eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 end
 
+# --- Homebrew Completions ---
+# Force Fish to look at Homebrew's completion directories
+if test -d "$HOMEBREW_PREFIX/share/fish/completions"
+    set -p fish_complete_path "$HOMEBREW_PREFIX/share/fish/completions"
+end
+if test -d "$HOMEBREW_PREFIX/share/fish/vendor_completions.d"
+    set -p fish_complete_path "$HOMEBREW_PREFIX/share/fish/vendor_completions.d"
+end
+
 # --- Custom PATH Additions ---
 # Adds specific directories to the system PATH so their binaries can be executed.
 # - Emacs bin: For Emacs-specific CLI tools.
@@ -53,11 +62,6 @@ if command -q pyenv
 end
 if command -q rbenv
     fish_add_path -g (rbenv root)/shims
-end
-
-# --- CLI Tool Completion ---
-if type -q symfony
-    symfony completion fish | source
 end
 
 # =============================================================================
@@ -94,6 +98,19 @@ if status is-interactive
     # Replaces the default shell history search with a neural-network-powered UI.
     if command -q mcfly
         mcfly init fish | source
+    end
+
+    # --- CLI Tool Completion (Interactive Only) ---
+    if type -q symfony
+        symfony completion fish | source
+    end
+
+    if command -q gh
+        gh completion -s fish | source
+    end
+
+    if command -q fzf
+        fzf --fish | source
     end
 
     # --- Language Managers (Interactive Init) ---

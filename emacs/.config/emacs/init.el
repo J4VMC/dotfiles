@@ -160,7 +160,7 @@
   :demand t ;; Load immediately (do not lazy-load).
   :init
   ;; Define which variables to import from the shell.
-  (setq exec-path-from-shell-variables '("PATH" "MANPATH" "VIRTUAL_ENV" "PYTHONPATH"))
+  (setq exec-path-from-shell-variables '("PATH" "MANPATH" "VIRTUAL_ENV" "PYTHONPATH" "LEFTHOOK_CONFIG"))
   :config
   ;; Apply the variables only in graphical Emacs.
   ;; -> Terminal Emacs (`emacs -nw`) inherits the correct environment automatically.
