@@ -223,7 +223,7 @@
   :ensure t
   :custom
   ;; Define the location of your custom, handwritten snippet files.
-  (tempel-path (concat user-emacs-directory "custom_template_file"))
+  (tempel-path (locate-user-emacs-file "templates"))
   :bind (;; `M-*` inserts a snippet by manually searching its name.
          ("M-*" . tempel-insert)
          ;; `M-+` attempts to expand the word directly under the cursor into a snippet.
@@ -261,11 +261,14 @@
   (add-hook 'prog-mode-hook 'jmc-tempel-setup-capf-h)
   (add-hook 'text-mode-hook 'jmc-tempel-setup-capf-h)
 
+  ;; Explicitly activate in Magit commit buffers
+  (add-hook 'git-commit-setup-hook #'jmc-tempel-setup-capf-h)
+
   ;; Specialized hook for Git commit messages.
   (add-hook 'git-commit-setup-hook #'jmc-magit-commit-conventional-h)
   :config
   ;; Automatically expand a snippet if you type its trigger word followed by SPACE.
-  (setq global-tempel-abbrev-mode 1))
+  (global-tempel-abbrev-mode 1))
 
 ;; Tempel Collection: A pre-made library of community snippets.
 ;; -> Provides boilerplate snippets for Python, JS, Go, C++, etc., out of the box.

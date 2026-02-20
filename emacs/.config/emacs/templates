@@ -102,7 +102,7 @@ web-mode twig-mode
 (hack "{# HACK: " p " #}")
 (working "{# WORKING HERE: " p " #}")
 
-fundamental-mode
+text-mode git-commit-mode
 
 ;; ============================================
 ;; CONVENTIONAL COMMITS
