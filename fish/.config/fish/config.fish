@@ -54,16 +54,6 @@ fish_add_path -g \
 set -gx EDITOR emacs # Set Emacs as the default editor for git, etc.
 set -gx GPG_TTY (tty) # Required for GPG signing and encryption.
 
-# --- Language Manager Shims ---
-# These ensure that non-interactive programs (like Emacs) can find the 
-# correct versions of Python or Ruby managed by pyenv/rbenv.
-if command -q pyenv
-    fish_add_path -g (pyenv root)/shims
-end
-if command -q rbenv
-    fish_add_path -g (rbenv root)/shims
-end
-
 # =============================================================================
 # 2. INTERACTIVE-ONLY SETUP
 # =============================================================================
@@ -112,10 +102,6 @@ if status is-interactive
     if command -q fzf
         fzf --fish | source
     end
-
-    # --- Language Managers (Interactive Init) ---
-    command -q rbenv; and rbenv init - fish 2>/dev/null | source
-    command -q pyenv; and pyenv init - fish 2>/dev/null | source
 
     # -------------------------------------------------------------------------
     # BACKGROUND UPDATES
