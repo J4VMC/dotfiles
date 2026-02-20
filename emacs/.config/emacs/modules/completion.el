@@ -246,23 +246,15 @@
   (defun jmc-magit-commit-conventional-h ()
     "Custom setup for conventional commits in Magit buffers."
     (jmc-tempel-setup-capf-h)
-    
-    ;; 1. Capture the exact Magit buffer we are opening
     (let ((commit-buf (current-buffer)))
-      
-      ;; 2. Wait until Emacs is completely idle (Magit is finished)
       (run-with-idle-timer 0.05 nil
 			   (lambda ()
-			     ;; 3. Ensure the buffer wasn't closed immediately
 			     (when (buffer-live-p commit-buf)
 			       (with-current-buffer commit-buf
 				 (goto-char (point-min))
-				 
-				 ;; 4. Check if the top line is empty
 				 (when (looking-at-p "^$")
-				   
-				   ;; 5. Hardcode the initial template to bypass file-parsing issues
-				   (tempel-insert '("feat(" (p "scope") "): " p)))))))))
+				   ;; Bypass file lookup and hardcode the exact empty placeholders
+				   (tempel-insert '("feat(" p "): " p)))))))))
   
   ;; Activate snippet integration in all text and programming environments.
   (add-hook 'conf-mode-hook 'jmc-tempel-setup-capf-h)

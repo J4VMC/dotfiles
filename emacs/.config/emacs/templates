@@ -102,20 +102,20 @@ web-mode twig-mode
 (hack "{# HACK: " p " #}")
 (working "{# WORKING HERE: " p " #}")
 
-text-mode
+fundamental-mode
 
 ;; ============================================
 ;; CONVENTIONAL COMMITS
 ;; ============================================
 
-(feat "feat(" (p "scope") "): " p)
-(fix "fix(" (p "scope") "): " p)
-(docs "docs(" (p "scope") "): " p)
-(style "style(" (p "scope") "): " p)
-(ref "refactor(" (p "scope") "): " p)
-(perf "perf(" (p "scope") "): " p)
-(test "test(" (p "scope") "): " p)
-(chore "chore(" (p "scope") "): " p)
+(feat "feat(" p "): " p)
+(fix "fix(" p "): " p)
+(docs "docs(" p "): " p)
+(style "style(" p "): " p)
+(ref "refactor(" p "): " p)
+(perf "perf(" p "): " p)
+(test "test(" p "): " p)
+(chore "chore(" p "): " p)
 
 
 ;; Local Variables:
